@@ -1,12 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Site</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#070b14" />
+  <title>GlobeTap Unlimited</title>
+  <link rel="stylesheet" href="./styles.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
-  <h1>Hello world</h1>
-  <p>This is my GitHub website.</p>
+  <main id="app">
+    <div id="globe-wrap" aria-label="Interactive Earth globe">
+      <canvas id="globe"></canvas>
+      <div id="loading" class="loading">Loading locations…</div>
+      <div class="controls-hint">Drag to rotate · Scroll to zoom · Click to guess</div>
+    </div>
+
+    <aside class="panel">
+      <div class="brand-row">
+        <div>
+          <div class="eyebrow">UNLIMITED GEOGRAPHY</div>
+          <h1>GlobeTap</h1>
+        </div>
+        <button id="reset-btn" class="icon-button" title="Start a new game" aria-label="Start a new game">↻</button>
+      </div>
+
+      <section class="target-card">
+        <div class="label">FIND</div>
+        <div id="target-name" class="target-name">Loading…</div>
+        <div id="target-meta" class="target-meta">Pick the place on the globe.</div>
+      </section>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <span class="label">ROUND</span>
+          <strong id="round-value">0</strong>
+        </div>
+        <div class="stat">
+          <span class="label">TOTAL</span>
+          <strong id="total-score">0</strong>
+        </div>
+        <div class="stat">
+          <span class="label">AVG.</span>
+          <strong id="avg-score">—</strong>
+        </div>
+      </div>
+
+      <section id="guess-card" class="guess-card hidden">
+        <div class="guess-row">
+          <span>Your guess</span>
+          <strong id="guess-coords">—</strong>
+        </div>
+      </section>
+
+      <section id="result-card" class="result-card hidden">
+        <div class="result-topline">
+          <div>
+            <div class="label">DISTANCE</div>
+            <strong id="distance-value" class="distance-value">—</strong>
+          </div>
+          <div class="score-badge">
+            <span class="label">SCORE</span>
+            <strong id="round-score">—</strong>
+          </div>
+        </div>
+        <div id="result-copy" class="result-copy"></div>
+      </section>
+
+      <div class="actions">
+        <button id="guess-btn" class="primary" disabled>Lock guess</button>
+        <button id="next-btn" class="primary hidden">Next round</button>
+      </div>
+
+      <details class="settings">
+        <summary>Game settings</summary>
+        <div class="settings-grid">
+          <label>
+            Continent
+            <select id="continent-filter">
+              <option value="all">Anywhere</option>
+            </select>
+          </label>
+          <label>
+            Difficulty
+            <select id="difficulty-filter">
+              <option value="all">Any</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <footer>
+        <span id="pool-size">— locations</span>
+        <span>·</span>
+        <span>Enter = lock / next</span>
+      </footer>
+    </aside>
+  </main>
+
+  <script type="module" src="./game.js"></script>
 </body>
 </html>
