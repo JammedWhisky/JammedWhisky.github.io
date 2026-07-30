@@ -62,6 +62,9 @@ const infoText = document.querySelector('#object-info-text');
 const infoLink = document.querySelector('#object-info-link');
 
 function showInfo(object) {
+
+  console.log('CLICKED:', object.title);
+
   infoTitle.textContent = object.title;
   infoText.textContent = object.text;
   infoLink.href = object.href;
@@ -72,8 +75,6 @@ function showInfo(object) {
 function hideInfo() {
   infoBox.classList.add('hidden');
 }
-
-
 // ============================================================
 // PHYSICS WORLD
 // ============================================================
@@ -533,27 +534,18 @@ window.addEventListener('pointerup', () => {
 
   if (mouseConstraint) {
 
-    world.removeConstraint(
-      mouseConstraint
-    );
-
+    world.removeConstraint(mouseConstraint);
     mouseConstraint = null;
+
   }
 
+  if (releasedObject && !wasDragged) {
 
-  if (
-    releasedObject &&
-    !wasDragged
-  ) {
+    showInfo(releasedObject);
 
-    showInfo(
-      releasedObject
-    );
   }
-
 
   selected = null;
-
   wasDragged = false;
 
   document.body.style.cursor = 'default';
