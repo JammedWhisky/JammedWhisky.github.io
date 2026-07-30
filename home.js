@@ -31,7 +31,6 @@ const camera = new THREE.PerspectiveCamera(
 
 camera.position.set(0, 0, 14);
 
-
 const renderer = new THREE.WebGLRenderer({
   canvas,
   antialias: true,
@@ -54,26 +53,39 @@ scene.add(ambientLight, directionalLight);
 
 
 // ============================================================
+// INFO BOX
+// ============================================================
+
+const infoBox = document.querySelector('#object-info');
+const infoTitle = document.querySelector('#object-info-title');
+const infoText = document.querySelector('#object-info-text');
+const infoLink = document.querySelector('#object-info-link');
+
+function showInfo(object) {
+  infoTitle.textContent = object.title;
+  infoText.textContent = object.text;
+  infoLink.href = object.href;
+
+  infoBox.classList.remove('hidden');
+}
+
+function hideInfo() {
+  infoBox.classList.add('hidden');
+}
+
+
+// ============================================================
 // PHYSICS WORLD
 // ============================================================
 
 const world = new CANNON.World();
 
-// No gravity for now.
-// Objects float around like a menu / desktop toybox.
 world.gravity.set(0, 0, 0);
 
 
 // ============================================================
 // OBJECT STORAGE
 // ============================================================
-
-// Each entry connects:
-//
-// Three.js mesh  <-->  Cannon physics body
-//
-// Three renders it.
-// Cannon decides where it actually is.
 
 const objects = [];
 
@@ -92,7 +104,6 @@ const boxMesh = new THREE.Mesh(
 
 scene.add(boxMesh);
 
-
 const boxBody = new CANNON.Body({
   mass: 1,
 
@@ -108,6 +119,10 @@ world.addBody(boxBody);
 objects.push({
   mesh: boxMesh,
   body: boxBody,
+
+  title: 'Projects',
+  text: 'Stuff I have made.',
+  href: './projects/',
 });
 
 
@@ -125,7 +140,6 @@ const sphereMesh = new THREE.Mesh(
 
 scene.add(sphereMesh);
 
-
 const sphereBody = new CANNON.Body({
   mass: 1,
 
@@ -139,6 +153,10 @@ world.addBody(sphereBody);
 objects.push({
   mesh: sphereMesh,
   body: sphereBody,
+
+  title: 'About Me',
+  text: 'Who is this strange little man?',
+  href: './about/',
 });
 
 
@@ -156,15 +174,14 @@ const cylinderMesh = new THREE.Mesh(
 
 scene.add(cylinderMesh);
 
-
 const cylinderBody = new CANNON.Body({
   mass: 1,
 
   shape: new CANNON.Cylinder(
-    1,      // top radius
-    1,      // bottom radius
-    2.5,    // height
-    16      // collision subdivisions
+    1,
+    1,
+    2.5,
+    16
   ),
 
   position: new CANNON.Vec3(4, 1, 0),
@@ -175,22 +192,23 @@ world.addBody(cylinderBody);
 objects.push({
   mesh: cylinderMesh,
   body: cylinderBody,
+
+  title: 'Map Game',
+  text: 'My geography game.',
+  href: './MaptapClone/',
 });
 
 
 // ============================================================
-// KEEP EVERYTHING MOSTLY IN A 2D PLANE
+// OBJECT PHYSICS SETTINGS
 // ============================================================
 
 for (const object of objects) {
 
-  // Allow x/y motion, but not z motion.
   object.body.linearFactor.set(1, 1, 0);
 
-  // Allow visible rotation.
   object.body.angularFactor.set(1, 1, 1);
 
-  // Gradually lose energy.
   object.body.linearDamping = 0.15;
   object.body.angularDamping = 0.2;
 }
@@ -202,7 +220,6 @@ for (const object of objects) {
 
 let walls = [];
 
-
 function rebuildWalls() {
 
   for (const wall of walls) {
@@ -210,9 +227,6 @@ function rebuildWalls() {
   }
 
   walls = [];
-
-
-  // Convert the visible camera area into world dimensions.
 
   const distance = camera.position.z;
 
@@ -226,11 +240,11 @@ function rebuildWalls() {
   const visibleWidth =
     visibleHeight * camera.aspect;
 
-
   const thickness = 1;
 
   const left = new CANNON.Body({
     mass: 0,
+
     shape: new CANNON.Box(
       new CANNON.Vec3(
         thickness,
@@ -238,6 +252,7 @@ function rebuildWalls() {
         5
       )
     ),
+
     position: new CANNON.Vec3(
       -visibleWidth / 2 - thickness,
       0,
@@ -245,9 +260,9 @@ function rebuildWalls() {
     ),
   });
 
-
   const right = new CANNON.Body({
     mass: 0,
+
     shape: new CANNON.Box(
       new CANNON.Vec3(
         thickness,
@@ -255,6 +270,7 @@ function rebuildWalls() {
         5
       )
     ),
+
     position: new CANNON.Vec3(
       visibleWidth / 2 + thickness,
       0,
@@ -262,9 +278,9 @@ function rebuildWalls() {
     ),
   });
 
-
   const top = new CANNON.Body({
     mass: 0,
+
     shape: new CANNON.Box(
       new CANNON.Vec3(
         visibleWidth,
@@ -272,6 +288,7 @@ function rebuildWalls() {
         5
       )
     ),
+
     position: new CANNON.Vec3(
       0,
       visibleHeight / 2 + thickness,
@@ -279,9 +296,9 @@ function rebuildWalls() {
     ),
   });
 
-
   const bottom = new CANNON.Body({
     mass: 0,
+
     shape: new CANNON.Box(
       new CANNON.Vec3(
         visibleWidth,
@@ -289,6 +306,7 @@ function rebuildWalls() {
         5
       )
     ),
+
     position: new CANNON.Vec3(
       0,
       -visibleHeight / 2 - thickness,
@@ -296,44 +314,45 @@ function rebuildWalls() {
     ),
   });
 
+  walls = [
+    left,
+    right,
+    top,
+    bottom
+  ];
 
-  walls = [left, right, top, bottom];
-
-  walls.forEach(wall => world.addBody(wall));
+  walls.forEach(
+    wall => world.addBody(wall)
+  );
 }
-
 
 rebuildWalls();
 
 
 // ============================================================
-// DRAGGING
+// DRAGGING + CLICK DETECTION
 // ============================================================
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-
-
-// Invisible mathematical plane corresponding to z = 0.
-//
-// We raycast the mouse onto this plane to determine where
-// the dragged physics object should go.
 
 const dragPlane = new THREE.Plane(
   new THREE.Vector3(0, 0, 1),
   0
 );
 
-
 let selected = null;
 
+const pointerStart = new THREE.Vector2();
 
-// This is an invisible physics body controlled by the mouse.
-//
-// Instead of teleporting the selected object directly,
-// we attach the object to this body with a constraint.
-//
-// That allows Cannon to preserve actual physics.
+let wasDragged = false;
+
+const dragThreshold = 6;
+
+
+// ============================================================
+// MOUSE PHYSICS BODY
+// ============================================================
 
 const mouseBody = new CANNON.Body({
   mass: 0,
@@ -342,13 +361,12 @@ const mouseBody = new CANNON.Body({
 
 world.addBody(mouseBody);
 
-
 let mouseConstraint = null;
 
 
-// ------------------------------------------------------------
-// Convert browser mouse coordinates into normalized Three coords
-// ------------------------------------------------------------
+// ============================================================
+// MOUSE POSITION
+// ============================================================
 
 function updateMouse(event) {
 
@@ -357,13 +375,8 @@ function updateMouse(event) {
 
   mouse.y =
     -(event.clientY / window.innerHeight) * 2 + 1;
-
 }
 
-
-// ------------------------------------------------------------
-// Convert cursor position into x/y coordinates in our 3D scene
-// ------------------------------------------------------------
 
 function getMouseWorldPosition() {
 
@@ -386,57 +399,39 @@ function getMouseWorldPosition() {
 
 window.addEventListener('pointerdown', event => {
 
+  if (infoBox.contains(event.target)) {
+    return;
+  }
+
   updateMouse(event);
 
   raycaster.setFromCamera(mouse, camera);
 
-
-  const meshes = objects.map(object => object.mesh);
-
-  const hits = raycaster.intersectObjects(meshes);
-
+  const hits = raycaster.intersectObjects(
+    objects.map(object => object.mesh)
+  );
 
   if (hits.length === 0) {
+
+    hideInfo();
+
+    selected = null;
+
     return;
   }
 
-
   const clickedMesh = hits[0].object;
-
 
   selected = objects.find(
     object => object.mesh === clickedMesh
   );
 
-
-  const mousePosition = getMouseWorldPosition();
-
-
-  mouseBody.position.set(
-    mousePosition.x,
-    mousePosition.y,
-    0
+  pointerStart.set(
+    event.clientX,
+    event.clientY
   );
 
-
-  // Create a temporary physical connection
-  // between the mouse and the selected object.
-
-  mouseConstraint = new CANNON.PointToPointConstraint(
-    selected.body,
-
-    new CANNON.Vec3(0, 0, 0),
-
-    mouseBody,
-
-    new CANNON.Vec3(0, 0, 0)
-  );
-
-
-  world.addConstraint(mouseConstraint);
-
-
-  selected.body.wakeUp();
+  wasDragged = false;
 
   document.body.style.cursor = 'grabbing';
 });
@@ -450,9 +445,6 @@ window.addEventListener('pointermove', event => {
 
   updateMouse(event);
 
-
-  // Hover cursor
-
   if (!selected) {
 
     raycaster.setFromCamera(mouse, camera);
@@ -462,15 +454,63 @@ window.addEventListener('pointermove', event => {
     );
 
     document.body.style.cursor =
-      hits.length > 0 ? 'grab' : 'default';
+      hits.length > 0
+        ? 'grab'
+        : 'default';
+
+    return;
   }
 
 
-  // Dragging
+  const distanceMoved = Math.hypot(
+    event.clientX - pointerStart.x,
+    event.clientY - pointerStart.y
+  );
 
-  if (selected) {
 
-    const position = getMouseWorldPosition();
+  // Start dragging only after the cursor has moved enough.
+
+  if (
+    !wasDragged &&
+    distanceMoved > dragThreshold
+  ) {
+
+    wasDragged = true;
+
+    hideInfo();
+
+    const mousePosition =
+      getMouseWorldPosition();
+
+    mouseBody.position.set(
+      mousePosition.x,
+      mousePosition.y,
+      0
+    );
+
+    mouseConstraint =
+      new CANNON.PointToPointConstraint(
+        selected.body,
+
+        new CANNON.Vec3(0, 0, 0),
+
+        mouseBody,
+
+        new CANNON.Vec3(0, 0, 0)
+      );
+
+    world.addConstraint(
+      mouseConstraint
+    );
+
+    selected.body.wakeUp();
+  }
+
+
+  if (wasDragged) {
+
+    const position =
+      getMouseWorldPosition();
 
     mouseBody.position.set(
       position.x,
@@ -479,9 +519,7 @@ window.addEventListener('pointermove', event => {
     );
 
     mouseBody.velocity.set(0, 0, 0);
-
   }
-
 });
 
 
@@ -491,14 +529,32 @@ window.addEventListener('pointermove', event => {
 
 window.addEventListener('pointerup', () => {
 
+  const releasedObject = selected;
+
   if (mouseConstraint) {
 
-    world.removeConstraint(mouseConstraint);
+    world.removeConstraint(
+      mouseConstraint
+    );
 
     mouseConstraint = null;
   }
 
+
+  if (
+    releasedObject &&
+    !wasDragged
+  ) {
+
+    showInfo(
+      releasedObject
+    );
+  }
+
+
   selected = null;
+
+  wasDragged = false;
 
   document.body.style.cursor = 'default';
 });
@@ -531,26 +587,17 @@ window.addEventListener('resize', () => {
 
 const clock = new THREE.Clock();
 
-
 function animate() {
 
   requestAnimationFrame(animate);
 
-
   const delta = clock.getDelta();
-
-
-  // Advance physics simulation.
 
   world.step(
     1 / 60,
     delta,
     3
   );
-
-
-  // Cannon calculates positions.
-  // Copy those positions into Three.js.
 
   for (const object of objects) {
 
@@ -561,13 +608,12 @@ function animate() {
     object.mesh.quaternion.copy(
       object.body.quaternion
     );
-
   }
 
-
-  renderer.render(scene, camera);
-
+  renderer.render(
+    scene,
+    camera
+  );
 }
-
 
 animate();
