@@ -201,6 +201,66 @@ objects.push({
 
 
 // ============================================================
+// OBJECT 4 MISC
+// ============================================================
+
+const heartShape = new THREE.Shape();
+
+heartShape.moveTo(25, 25);
+heartShape.bezierCurveTo(25, 25, 20, 0, 0, 0);
+heartShape.bezierCurveTo(-30, 0, -30, 35, -30, 35);
+heartShape.bezierCurveTo(-30, 55, -10, 77, 25, 95);
+heartShape.bezierCurveTo(60, 77, 80, 55, 80, 35);
+heartShape.bezierCurveTo(80, 35, 80, 0, 50, 0);
+heartShape.bezierCurveTo(35, 0, 25, 25, 25, 25);
+
+const extrudeSettings = {
+  depth: 8,
+  bevelEnabled: true,
+  bevelSegments: 2,
+  steps: 2,
+  bevelSize: 1,
+  bevelThickness: 1
+};
+
+const heartGeometry =
+  new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+
+heartGeometry.center();
+
+const heartMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xd5b65d,
+    roughness: 0.5,
+  });
+
+const heartMesh =
+  new THREE.Mesh(heartGeometry, heartMaterial);
+
+heartMesh.scale.setScalar(0.03);
+
+scene.add(heartMesh);
+
+const heartBody = new CANNON.Body({
+  mass: 1,
+
+  shape: new CANNON.Sphere(1.5),
+
+  position: new CANNON.Vec3(0, 2, 0),
+});
+
+world.addBody(heartBody);
+
+objects.push({
+  mesh: heartMesh,
+  body: heartBody,
+
+  title: 'Misc.',
+  text: 'Misc.',
+  href: './misc/',
+});
+
+// ============================================================
 // OBJECT PHYSICS SETTINGS
 // ============================================================
 
