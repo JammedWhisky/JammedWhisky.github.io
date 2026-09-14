@@ -1,5 +1,14 @@
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
+body {
+  margin: 0;
+}
+
+.about {
+  max-width: 700px;
+  margin: 60px auto;
+  padding: 0 24px;
+}
+
+.about p {
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
 }
