@@ -11,7 +11,7 @@ export default defineConfig({
         maptap: resolve(__dirname, 'MaptapClone/index.html'),
         about: resolve(__dirname, 'about/index.html'),
         projects: resolve(__dirname, 'projects/index.html'),
-        misc: resolve(__dirname, 'about/misc.html')
+        misc: resolve(__dirname, 'misc/index.html')
       },
     },
   },
